@@ -5,12 +5,13 @@ def call(Map config = [:]) {
 
     stage('Node Build') {
         container(nodeContainer) {
-            sh """
-              npm ci --no-audit --no-fund
-              npm run lint || true
-              ${testCommand}
-              ${buildCommand}
-            """
+            sh 'npm ci --no-audit --no-fund'
+            def lintStatus = sh(script: 'npm run lint', returnStatus: true)
+            if (lintStatus != 0) {
+                unstable('Lint checks failed')
+            }
+            sh testCommand
+            sh buildCommand
         }
     }
 }
